@@ -50,9 +50,7 @@ const userSchema = new mongoose.Schema({
 
     // For doctors and reception staff
     employeeId: {
-        type: String,
-        unique: true,
-        sparse: true // Allows multiple null values
+        type: String
     },
     department: {
         type: String,
@@ -62,7 +60,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
-    
+
     // Doctor-specific fields
     licenseNumber: {
         type: String,
@@ -95,6 +93,11 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
+
+userSchema.index(
+    { employeeId: 1 },
+    { unique: true, partialFilterExpression: { employeeId: { $exists: true, $type: "string" } } }
+);
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function () {
