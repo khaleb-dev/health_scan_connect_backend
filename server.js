@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -52,6 +54,20 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files (for QR code images)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Swagger/OpenAPI docs
+const openApiPath = path.join(__dirname, 'openapi.json');
+let openApiSpec = {};
+try {
+    const raw = fs.readFileSync(openApiPath, 'utf-8');
+    openApiSpec = JSON.parse(raw);
+} catch (err) {
+    console.warn('OpenAPI spec not found or invalid:', err?.message);
+}
+app.get('/api/docs.json', (req, res) => {
+    res.json(openApiSpec);
+});
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
