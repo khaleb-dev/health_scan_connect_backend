@@ -89,7 +89,6 @@ queueSchema.index({ status: 1, priority: 1 });
 queueSchema.index({ checkedInAt: 1 });
 queueSchema.index({ patientId: 1 });
 queueSchema.index({ assignedDoctor: 1 });
-queueSchema.index({ queueNumber: 1 });
 
 // Virtual for wait time
 queueSchema.virtual('waitTime').get(function () {
