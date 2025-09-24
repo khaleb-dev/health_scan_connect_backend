@@ -19,7 +19,7 @@ const queueSchema = new mongoose.Schema({
     checkedInBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
     checkedInAt: {
         type: Date,
