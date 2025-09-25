@@ -47,7 +47,8 @@ router.post('/register', [
             phone,
             dateOfBirth,
             employeeId,
-            department
+            department,
+            specializations: department ? [department] : []
         });
 
         if (user) {
