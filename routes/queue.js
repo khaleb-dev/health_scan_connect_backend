@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import Queue from '../models/Queue.js';
 import Patient from '../models/Patient.js';
 import { protect, requireStaff } from '../middleware/auth.js';
+import { assignDoctorToPatient } from '../services/doctorAssignment.js';
 
 const router = express.Router();
 
@@ -51,24 +52,49 @@ router.post('/check-in', protect, requireStaff, [
             });
         }
 
-        // Create queue entry
-        const queueEntry = new Queue({
-            patientId,
-            checkedInBy: req.user._id,
-            priority: priority || 'medium',
-            severity: severity || 'medium',
-            visitType: visitType || 'walk-in',
-            notes,
-            estimatedWaitTime: estimatedWaitTime || 15,
-            symptoms: patient.currentSymptoms,
-            queueNumber: new Date().getTime()
-        });
+        let assignment = null;
+        try {
+            assignment = await assignDoctorToPatient(patient._id, patient.currentSymptoms);
 
-        await queueEntry.save();
+            // Update patient with assigned doctor
+            patient.assignedDoctor = assignment.assignment.doctor.id;
+            await patient.save();
+        } catch (assignmentError) {
+            console.error('Doctor assignment failed: ', assignmentError);
+            // Continue without assignment - staff can manually assign later
+        }
+
+        // Create/Update queue entry
+        let queueEntry;
+        
+        if (assignment?.assignment?.queue?.queueNumber) {
+            queueEntry = await Queue.findOneAndUpdate({ patientId, queueNumber: assignment.assignment.queue.queueNumber }, {
+                severity: severity || 'medium',
+                visitType: visitType || 'walk-in',
+                notes,
+                checkedInBy: req.user._id,
+            });
+        } else {
+            queueEntry = new Queue({
+                patientId,
+                checkedInBy: req.user._id,
+                priority: priority || 'medium',
+                severity: severity || 'medium',
+                visitType: visitType || 'walk-in',
+                notes,
+                estimatedWaitTime: estimatedWaitTime || 15,
+                symptoms: patient.currentSymptoms,
+                queueNumber: new Date().getTime(),
+                assignedDoctor: patient.assignedDoctor || null
+            });
+
+            await queueEntry.save();
+        }
 
         // Populate patient details
         await queueEntry.populate('patientId', 'firstName lastName phone currentSymptoms');
         await queueEntry.populate('checkedInBy', 'firstName lastName');
+        await queueEntry.populate('assignedDoctor', 'firstName lastName phone role department specializations yearsOfExperience');
 
         res.status(201).json({
             success: true,

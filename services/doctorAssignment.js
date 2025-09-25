@@ -342,11 +342,9 @@ export const assignDoctorToPatient = async (patientId, symptoms) => {
     // Step 3: Create queue entry
     const queueEntry = new Queue({
       patientId,
-      doctorId: doctorAssignment.doctor._id,
+      assignedDoctor: doctorAssignment.doctor._id,
       priority: symptomAnalysis.priority,
       symptoms,
-      status: 'waiting',
-      checkInTime: new Date()
     });
 
     await queueEntry.save();

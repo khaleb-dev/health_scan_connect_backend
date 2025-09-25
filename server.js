@@ -19,6 +19,7 @@ import appointmentRoutes from './routes/appointments.js';
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
+import { keepAlive } from './services/keepAlive.js';
 
 // Load environment variables
 dotenv.config();
@@ -112,6 +113,8 @@ const startServer = async () => {
         console.log(`🔗 API URL: http://localhost:${PORT}/api`);
         console.log(`🏥 QRHealth System Backend Ready!`);
     });
+
+    keepAlive();
 };
 
 // Handle unhandled promise rejections
