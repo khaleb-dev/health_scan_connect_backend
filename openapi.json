@@ -9,6 +9,10 @@
         {
             "url": "http://localhost:5000/api",
             "description": "Local"
+        },
+        {
+            "url": "https://health-scan-connect-backend.onrender.com/api",
+            "description": "Render"
         }
     ],
     "tags": [
