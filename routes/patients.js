@@ -2,8 +2,6 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Patient from '../models/Patient.js';
 import { protect, requireStaff } from '../middleware/auth.js';
-import QRCode from 'qrcode';
-import { assignDoctorToPatient } from '../services/doctorAssignment.js';
 
 const router = express.Router();
 
@@ -73,29 +71,10 @@ router.post('/', [
         // Save patient first
         await patient.save();
 
-        // Assign doctor based on symptoms
-        let assignment = null;
-        try {
-            assignment = await assignDoctorToPatient(patient._id, currentSymptoms);
-
-            // Update patient with assigned doctor
-            patient.assignedDoctor = assignment.assignment.doctor.id;
-            await patient.save();
-        } catch (assignmentError) {
-            console.error('Doctor assignment failed:', assignmentError);
-            // Continue without assignment - staff can manually assign later
-        }
-
-        // Populate assigned doctor for response
-        await patient.populate('assignedDoctor', 'firstName lastName department specializations');
-
         res.status(201).json({
             success: true,
             data: patient,
-            assignment: assignment?.assignment || null,
-            message: assignment ?
-                `Patient registered successfully and assigned to ${assignment.assignment.doctor.name}` :
-                'Patient registered successfully. Doctor assignment pending.'
+            message: 'Patient registered successfully.'
         });
     } catch (error) {
         console.error('Patient registration error:', error);
