@@ -55,12 +55,7 @@ router.post('/register', [
             res.status(201).json({
                 success: true,
                 data: {
-                    _id: user._id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    role: user.role,
-                    phone: user.phone,
+                    ...user,
                     token: generateToken(user._id)
                 }
             });
@@ -126,13 +121,7 @@ router.post('/login', [
         res.json({
             success: true,
             data: {
-                _id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                phone: user.phone,
-                department: user.department,
+                ...user,
                 token: generateToken(user._id)
             }
         });
