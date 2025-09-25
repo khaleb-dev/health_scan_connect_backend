@@ -297,13 +297,30 @@ router.post('/call-next', protect, requireStaff, async (req, res) => {
     try {
         const { doctorId } = req.body;
 
-        // Find the next patient in queue
-        let query = { status: 'waiting' };
+        let currentQuery = { status: 'in-progress' };
         if (doctorId) {
-            query.assignedDoctor = doctorId;
+            currentQuery.assignedDoctor = doctorId;
         }
 
-        const nextPatient = await Queue.findOne(query)
+        // Find the next patient in queue
+        let nextQuery = { status: 'waiting' };
+        if (doctorId) {
+            nextQuery.assignedDoctor = doctorId;
+        }
+
+        const currentPatient = await Queue.findOne(currentQuery)
+            .populate('patientId', 'firstName lastName phone currentSymptoms')
+            .populate('assignedDoctor', 'firstName lastName')
+            .sort({ priority: -1, checkedInAt: 1 });
+
+        if (currentPatient) {
+            // Mark current patient as completed
+            currentPatient.status = 'completed';
+            currentPatient.completedAt = new Date();
+            await currentPatient.save();
+        }
+        
+        const nextPatient = await Queue.findOne(nextQuery)
             .populate('patientId', 'firstName lastName phone currentSymptoms')
             .populate('assignedDoctor', 'firstName lastName')
             .sort({ priority: -1, checkedInAt: 1 });
