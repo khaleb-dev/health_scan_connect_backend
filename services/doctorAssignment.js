@@ -339,12 +339,16 @@ export const assignDoctorToPatient = async (patientId, symptoms) => {
       symptomAnalysis.priority
     );
 
+    console.log('Symptom Analysis:', JSON.stringify(symptomAnalysis, null, 2));
+    console.log('Best Doctor Found:', JSON.stringify(doctorAssignment, null, 2));
+
     // Step 3: Create queue entry
     const queueEntry = new Queue({
       patientId,
       assignedDoctor: doctorAssignment.doctor._id,
       priority: symptomAnalysis.priority,
       symptoms,
+      queueNumber: 1, // this will be generated and updated in pre-save hook regardless
     });
 
     await queueEntry.save();
