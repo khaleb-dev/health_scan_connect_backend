@@ -130,6 +130,10 @@ router.get('/', protect, requireStaff, async (req, res) => {
             query.assignedDoctor = doctorId;
         }
 
+        if (req.user.role === 'doctor') {
+            query.assignedDoctor = req.user._id;
+        }
+
         const queue = await Queue.find(query)
             .populate('patientId', 'firstName lastName phone currentSymptoms age')
             .populate('checkedInBy', 'firstName lastName')
