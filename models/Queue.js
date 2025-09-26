@@ -12,7 +12,6 @@ const queueSchema = new mongoose.Schema({
     queueNumber: {
         type: Number,
         required: true,
-        unique: true
     },
 
     // Check-in information
